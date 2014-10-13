@@ -1,0 +1,3 @@
+var searchIndex = {};
+searchIndex['union_find'] = {"items":[[0,"","union_find",""],[1,"UnionFind","","Also known as the Disjoint-Set data structure."],[11,"value","","The value of the node.",0],[11,"parent","","Some(parent) for a leaf, or None for a canonical node.",0],[10,"fmt","","",0],[10,"eq","","",0],[10,"ne","","",0],[10,"make_set","","Encapsulates a `value` into a `UnionFind` node. It's parent is set to `None`, meaning it's a canonical node.",0],[10,"find","","Fetch the canonical element of the `UnionFind` dataset containing this one.",0],[10,"union","","Union two `UnionFind` data structures together.",0]],"paths":[[1,"UnionFind"]]};
+initSearch(searchIndex);
