@@ -72,13 +72,12 @@ impl<T> UnionFind<T> {
         UnionFind { value: value, parent: None }
     }
 
-    pub fn find(mut self) -> UnionFind<T> {
-        let parent = match self.parent {
-            Some(thing) => { thing.find() },
-            None => return self
-        };
-        self.parent = Some(box parent);
-        *self.parent.unwrap()
+    // There's no reason to do path compression when you can just forget about one of the values :P
+    pub fn find(self) -> UnionFind<T> {
+        match self.parent {
+            Some(p) => p.find(),
+            None => self
+        }
     }
 
     /** Union two `UnionFind` data structures together. */
