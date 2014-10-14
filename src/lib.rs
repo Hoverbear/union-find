@@ -46,72 +46,73 @@ assert!(x.parent == None);
   UnionFind::make_set("Foo"),
   UnionFind::make_set("Bar"),
   UnionFind::make_set("Baz"));
-x.union(&mut y);
+x.clone().union(&mut y);
 // Check relationships.
-assert!(*y.find() == x);
-assert!(*y.find() == *x.find());
-assert!(*y.find() != *z.find());
+assert!(y.clone().find() == x);
+assert!(y.clone().find() == x.clone().find());
+assert!(y.find() != z.find());
  ```
 
-
  */
-#[deriving(PartialEq, Eq, Show)]
-pub struct UnionFind<'a, T: 'a> {
-  /** The value of the node. */
-  pub value: T,
-  /**  Some(parent) for a leaf, or None for a canonical node.*/
-  pub parent: Option<&'a UnionFind<'a, T>>
+#[deriving(Clone, PartialEq, Show)]
+pub struct UnionFind<T> {
+    /** The value of the node. */
+    pub value: T,
+    /**  Some(parent) for a leaf, or None for a canonical node.*/
+    pub parent: Option<Box<UnionFind<T>>>
 }
 
 /**
  * The UnionFind data structure. This is a node that contains a value, and a reference to it's parent, if it has one.
  * All UnionFind nodes must be of a homogenious type.
  */
-impl <'a, T> UnionFind<'a, T> {
-  /**  Encapsulates a `value` into a `UnionFind` node. It's parent is set to `None`, meaning it's a canonical node. */
-  pub fn make_set(value: T) -> UnionFind<'a, T> {
-    UnionFind { value: value, parent: None }
-  }
-  /** Fetch the canonical element of the `UnionFind` dataset containing this one. */
-  pub fn find<'a> (&self) -> &'a UnionFind<T> {
-    match self.parent {
-      Some(n) => n.find(),
-      None      => self
+impl<T> UnionFind<T> {
+    /**  Encapsulates a `value` into a `UnionFind` node. It's parent is set to `None`, meaning it's a canonical node. */
+    pub fn make_set(value: T) -> UnionFind<T> {
+        UnionFind { value: value, parent: None }
     }
-  }
-  /** Union two `UnionFind` data structures together. */
-  pub fn union<'a>(&'a self, other: &mut UnionFind<'a, T>) -> &'a UnionFind<'a, T> {
-    other.parent = Some(self);
-    self
-  }
+
+    pub fn find(mut self) -> UnionFind<T> {
+        let parent = match self.parent {
+            Some(thing) => { thing.find() },
+            None => return self
+        };
+        self.parent = Some(box parent);
+        *self.parent.unwrap()
+    }
+
+    /** Union two `UnionFind` data structures together. */
+    pub fn union(self, other: &mut UnionFind<T>) {
+        other.parent = Some(box self);
+    }
 }
 
-// #[test]
-// fn can_create () {
-//   // Create with integer.
-//   let int_node = UnionFind::make_set(1u);
-//   assert_eq!(int_node.value, 1u);
-//   // With String
-//   let string_node = UnionFind::make_set("Foo".to_string());
-//   assert_eq!(string_node.value, "Foo".to_string());
-// }
-//
-// #[test]
-// fn can_union () {
-//   let one = UnionFind::make_set(1u);
-//   let mut two = UnionFind::make_set(2u);
-//   one.union(&mut two);
-//   assert_eq!(*two.find(), one);
-// }
-//
-// #[test]
-// fn can_find () {
-//   let one = UnionFind::make_set(1u);
-//   let mut two = UnionFind::make_set(2u);
-//   // Does it find on bare?
-//   assert_eq!(one.find().value, one.value);
-//   one.union(&mut two);
-//   // Does it find the parent correctly?
-//   assert_eq!(two.find().value, one.value);
-//   assert_eq!(one.find().value, one.value);
-// }
+#[test]
+fn can_create () {
+    // Create with integer.
+    let int_node = UnionFind::make_set(1u);
+    assert_eq!(int_node.value, 1u);
+    // With String
+    let string_node = UnionFind::make_set("Foo".to_string());
+    assert_eq!(string_node.value, "Foo".to_string());
+}
+
+#[test]
+fn can_union () {
+    let one = UnionFind::make_set(1u);
+    let mut two = UnionFind::make_set(2u);
+    one.clone().union(&mut two);
+    assert_eq!(two.find(), one);
+}
+
+#[test]
+fn can_find () {
+    let one = UnionFind::make_set(1u);
+    let mut two = UnionFind::make_set(2u);
+    // Does it find on bare?
+    assert_eq!(one.clone().find().value, one.value);
+    one.clone().union(&mut two);
+    // Does it find the parent correctly?
+    assert_eq!(two.find().value, one.value);
+    assert_eq!(one.clone().find().value, one.value);
+}
